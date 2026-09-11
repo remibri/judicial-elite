@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>JUDICIAL ELITE SPARRING</title>
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0e14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JE Sparring">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0a0e14;--panel:#161b22;--red:#ff3b30;--blue:#007aff;--green:#34c759;--text:#fff;--gold:#ffcc00}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif;overflow:hidden;touch-action:manipulation}
+.author-credit{position:fixed;bottom:10px;left:0;width:100%;text-align:center;font-size:.7rem;color:rgba(255,255,255,.2);letter-spacing:2px;pointer-events:none;text-transform:uppercase;z-index:1000}
+#selection-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.menu-card{background:var(--panel);padding:40px;border-radius:20px;border:1px solid #30363d;text-align:center;width:320px;max-width:90%}
+.btn-main{width:100%;padding:15px;margin:10px 0;border:none;border-radius:12px;cursor:pointer;font-size:1.1rem;font-weight:bold;color:white}
+.btn-head{background:var(--green)}.btn-judge{background:var(--blue)}.btn-display{background:purple}
+input{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #444;background:#0d1117;color:white;text-align:center;box-sizing:border-box}
+.admin-screen{display:none;grid-template-columns:350px 1fr;height:100vh;padding:15px;gap:15px;box-sizing:border-box}
+@media(max-width:768px){.admin-screen{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100vh;overflow-y:auto}.judges-sidebar{flex-direction:row;height:110px;overflow-x:auto;padding:10px}.judge-card-admin{min-width:140px}.score-big{font-size:6rem}.timer-strip{padding:12px;gap:8px}.timer-time{font-size:3rem}.time-adjust-wrap{gap:6px!important}.time-adjust-wrap .btn-small{padding:8px 9px;font-size:.8rem}}
+.judges-sidebar{background:var(--panel);border-radius:15px;padding:15px;display:flex;flex-direction:column;gap:12px;border:1px solid #30363d;overflow-y:auto}
+.judge-card-admin{background:#0d1117;padding:10px;border-radius:12px;border:2px solid #444;transition:all .3s ease}
+.judge-card-admin.connected{border-color:var(--green);box-shadow:0 0 10px rgba(52,199,89,.3)}
+.judge-card-title{font-size:.8rem;font-weight:bold;margin-bottom:8px;color:#888;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.judge-status-dot{width:8px;height:8px;border-radius:50%;background:#444}.judge-card-admin.connected .judge-status-dot{background:var(--green)}
+.judge-card-scores{display:flex;flex-direction:row;gap:8px}
+.mini-square{flex:1;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.4rem;color:white}
+.mini-r{background:rgba(255,59,48,.15);border:2px solid var(--red);color:white}.mini-b{background:rgba(0,122,255,.15);border:2px solid var(--blue);color:white}
+.main-content{display:flex;flex-direction:column;gap:12px;min-width:0;height:100%}
+.fighters-container{display:flex;height:260px;border-radius:20px;overflow:hidden}
+.fighter-box{flex:1;padding:20px;display:flex;flex-direction:column;position:relative}
+.red-box{background:linear-gradient(135deg,#800000 0%,var(--red) 100%)}.blue-box{background:linear-gradient(135deg,#000044 0%,var(--blue) 100%)}
+.name-wrapper{display:flex;flex-direction:column;cursor:pointer}.name{font-size:2.2rem;font-weight:800;line-height:1;text-transform:uppercase}.sub-name{font-size:.9rem;font-weight:600;opacity:.8}
+.score-big{font-size:10rem;font-weight:900;align-self:center;margin-top:auto;line-height:.7}
+.head-controls{position:absolute;bottom:15px;display:flex;gap:8px;background:rgba(0,0,0,.3);padding:5px;border-radius:10px}.red-box .head-controls{right:15px}.blue-box .head-controls{left:15px}
+.h-btn{background:white;color:black;border:none;width:40px;height:40px;border-radius:8px;font-size:1.5rem;font-weight:900;cursor:pointer}
+.doc-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}.doc-card{background:var(--panel);border-radius:15px;padding:10px;text-align:center;border:1px solid #30363d;cursor:pointer}.doc-card.active{background:#400;border-color:var(--red);box-shadow:0 0 15px var(--red)}.doc-val{font-size:2.2rem;font-weight:800;font-family:monospace}
+.penalty-container{display:grid;grid-template-columns:1fr 1fr;background:var(--panel);border-radius:15px;border:1px solid #30363d}
+.p-side{display:flex;justify-content:space-around;padding:15px}.p-unit{display:flex;flex-direction:column;align-items:center;gap:8px}.p-header{font-weight:800;font-size:.75rem;text-transform:uppercase}
+.p-btn{background:#30363d;border:none;color:white;width:35px;height:35px;border-radius:8px;font-weight:bold;cursor:pointer}.p-val{font-size:1.8rem;font-weight:800;min-width:30px;text-align:center}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-left:6px}.dot-red{background:var(--red)}.dot-yellow{background:var(--gold)}
+.timer-strip{background:var(--red);color:white;border-radius:20px;padding:15px 40px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-top:auto;min-height:80px;transition:background .3s;margin-bottom:5px}
+.timer-time{font-size:4.5rem;font-weight:900;font-family:monospace}.time-adjust-wrap{display:flex;align-items:center;gap:12px}.time-adjust-wrap .btn-small{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25)}
+#judge-interface{display:none;height:100vh;flex-direction:column;padding:10px;background:#000;gap:10px;box-sizing:border-box}
+.history-wrapper{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:90px;background:#111;border-radius:15px;padding:5px 15px}
+.judge-total-display{font-size:2.2rem;font-weight:900;display:flex;gap:10px;padding:0 15px;border-left:1px solid #333;border-right:1px solid #333;color:white}
+.tag{padding:8px 12px;border-radius:8px;font-weight:900;font-size:1.4rem;color:#fff;display:inline-block;margin:0 3px}
+.judge-pad{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}.j-col{display:flex;flex-direction:column;gap:10px}.j-btn{flex:1;border:none;border-radius:15px;font-size:3.5rem;font-weight:900;color:white;cursor:pointer}.locked{opacity:.15;pointer-events:none}
+.btn-small{background:#30363d;color:white;border:none;padding:8px 12px;border-radius:8px;font-weight:bold;cursor:pointer}
+#display-interface{display:none;flex-direction:column;height:100vh;padding:20px;box-sizing:border-box;background:#05070a;justify-content:space-between;position:relative}
+.disp-top-row{display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:20px;height:75vh}.disp-side-box{border-radius:25px;padding:30px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;position:relative}
+.disp-center-box{background:var(--panel);border-radius:25px;border:2px solid #30363d;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+.disp-name{font-size:3.5rem;font-weight:900;text-transform:uppercase;text-align:center;text-shadow:0 4px 10px rgba(0,0,0,.5)}.disp-score{font-size:16rem;font-weight:900;line-height:.8;text-shadow:0 5px 15px rgba(0,0,0,.6)}
+.disp-penalties{display:flex;gap:20px;width:100%;justify-content:center;background:rgba(0,0,0,.4);padding:15px;border-radius:15px;box-sizing:border-box}.disp-p-item{text-align:center;font-weight:bold}.disp-p-lbl{font-size:.9rem;color:#888;text-transform:uppercase;margin-bottom:5px}.disp-p-val{font-size:2rem;font-weight:900}
+.disp-round{font-size:2.8rem;font-weight:900;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}.disp-clock{font-size:8.5rem;font-weight:900;font-family:monospace;line-height:1;margin:15px 0;color:#fff}
+.disp-judges-row{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;height:15vh;min-height:100px;margin-top:20px}.disp-judge-card{background:var(--panel);border:1px solid #30363d;border-radius:15px;padding:15px 20px;display:flex;flex-direction:column;justify-content:center}.disp-j-grids{display:flex;gap:10px;height:100%;align-items:center}.disp-j-box{flex:1;height:60px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:900}
+#doctor-overlay{position:absolute;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;animation:fadeIn .3s ease;background:rgba(0,0,0,.95)}
+.doc-overlay-title{font-size:4rem;font-weight:900;text-transform:uppercase;letter-spacing:4px;margin-bottom:20px}.doc-overlay-clock{font-size:18rem;font-weight:900;font-family:monospace;line-height:.8}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="author-credit">Created by Kira Sytnyk</div>
+
+<div id="selection-screen">
+    <div class="menu-card" id="main-menu">
+        <h2 style="margin-bottom:20px;">JUDICIAL ELITE SPARRING</h2>
+        <button class="btn-main btn-head" onclick="startApp('admin')">ГОЛОВНИЙ СУДДЯ</button>
+        <button class="btn-main btn-judge" onclick="showJudgeLogin()">УВІЙТИ ЯК СУДДЯ</button>
+        <button class="btn-main btn-display" onclick="showDisplayLogin()">ЕКРАН ТРАНСЛЯЦІЇ</button>
+    </div>
+    <div class="menu-card" id="judge-login" style="display:none">
+        <h3>ВХІД СУДДІ</h3>
+        <input type="text" id="input-room" placeholder="ID Головного судді">
+        <input type="number" id="input-judge-num" placeholder="Номер судді (1-4)">
+        <button class="btn-main btn-judge" onclick="startApp('judge')" style="margin-top:15px">ПІДКЛЮЧИТИСЯ</button>
+        <button onclick="location.reload()" style="background:none;border:none;color:#888;margin-top:10px;cursor:pointer;">← Назад</button>
+    </div>
+    <div class="menu-card" id="display-login" style="display:none">
+        <h3>ПІДКЛЮЧИТИ ЕКРАН</h3>
+        <input type="text" id="display-room" placeholder="ID Головного судді">
+        <button class="btn-main btn-display" onclick="startApp('display')" style="margin-top:15px">ЗАПУСТИТИ ТАБЛО</button>
+        <button onclick="location.reload()" style="background:none;border:none;color:#888;margin-top:10px;cursor:pointer;">← Назад</button>
+    </div>
+</div>
+
+<div class="admin-screen" id="admin-interface">
+    <div class="judges-sidebar" id="judges-list"></div>
+    <div class="main-content">
+        <div class="nav-bar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <div style="display:flex;gap:8px;">
+                <button class="btn-small" onclick="goBackToMenu()">←</button>
+                <button class="btn-small" onclick="toggleFullScreen()">🖥 ПОВНИЙ ЕКРАН</button>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn-small" style="background:#400;color:#ff8888;" onclick="resetMatch()">СКИДАННЯ</button>
+                <button class="btn-small" onclick="setMatchTime()">TIME</button>
+            </div>
+            <div id="room-id" style="color:var(--blue);font-weight:bold;border:1px solid var(--blue);padding:5px 10px;border-radius:15px;font-size:.8rem;">ID: ---</div>
+        </div>
+
+        <div class="fighters-container">
+            <div class="fighter-box red-box">
+                <div class="name-wrapper" onclick="editName('red')">
+                    <span class="sub-name">HONG</span>
+                    <span class="name" id="name-red">HONG</span>
+                </div>
+                <div class="score-big" id="score-red">0</div>
+                <div class="head-controls">
+                    <button class="h-btn" onclick="headChange('r', -1)">−</button>
+                    <button class="h-btn" onclick="headChange('r', 1)">+</button>
+                </div>
+            </div>
+            <div class="fighter-box blue-box">
+                <div class="name-wrapper" style="align-items:flex-end;" onclick="editName('blue')">
+                    <span class="sub-name">CHONG</span>
+                    <span class="name" id="name-blue">CHONG</span>
+                </div>
+                <div class="score-big" id="score-blue">0</div>
+                <div class="head-controls">
+                    <button class="h-btn" onclick="headChange('b', 1)">+</button>
+                    <button class="h-btn" onclick="headChange('b', -1)">−</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="doc-row">
+            <div class="doc-card" id="card-doc-red" onclick="toggleDoc('red')">
+                <div class="p-header">DOCTOR TIME</div>
+                <div class="doc-val" id="val-doc-red">02:00</div>
+            </div>
+            <div class="doc-card" id="card-doc-blue" onclick="toggleDoc('blue')">
+                <div class="p-header">DOCTOR TIME</div>
+                <div class="doc-val" id="val-doc-blue">02:00</div>
+            </div>
+        </div>
+
+        <div class="penalty-container">
+            <div class="p-side" style="border-right:1px solid #30363d;">
+                <div class="p-unit">
+                    <span class="p-header">GAM JUM <span class="dot dot-red"></span></span>
+                    <div style="display:flex;align-items:center;gap:5px;"><button class="p-btn" onclick="chngP('red','gam',-1)">-</button><span class="p-val" id="gam-red">0</span><button class="p-btn" onclick="chngP('red','gam',1)">+</button></div>
+                </div>
+                <div class="p-unit">
+                    <span class="p-header">JU UI <span class="dot dot-yellow"></span></span>
+                    <div style="display:flex;align-items:center;gap:5px;"><button class="p-btn" onclick="chngP('red','chuy',-1)">-</button><span class="p-val" id="chuy-red">0</span><button class="p-btn" onclick="chngP('red','chuy',1)">+</button></div>
+                </div>
+            </div>
+            <div class="p-side">
+                <div class="p-unit">
+                    <span class="p-header">JU UI <span class="dot dot-yellow"></span></span>
+                    <div style="display:flex;align-items:center;gap:5px;"><button class="p-btn" onclick="chngP('blue','chuy',-1)">-</button><span class="p-val" id="chuy-blue">0</span><button class="p-btn" onclick="chngP('blue','chuy',1)">+</button></div>
+                </div>
+                <div class="p-unit">
+                    <span class="p-header">GAM JUM <span class="dot dot-red"></span></span>
+                    <div style="display:flex;align-items:center;gap:5px;"><button class="p-btn" onclick="chngP('blue','gam',-1)">-</button><span class="p-val" id="gam-blue">0</span><button class="p-btn" onclick="chngP('blue','gam',1)">+</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-strip" id="timer-btn" onclick="toggleMainTimer()">
+            <div>
+                <div id="round-label" style="font-weight:900;font-size:1.8rem">РАУНД 1</div>
+                <div id="timer-status" style="font-size:.8rem">TAP TO START</div>
+            </div>
+            <div class="time-adjust-wrap">
+                <button class="btn-small" onclick="changeMainTime(-10, event)">-10 сек.</button>
+                <div class="timer-time" id="main-clock">02:00</div>
+                <button class="btn-small" onclick="changeMainTime(10, event)">+10 сек.</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="judge-interface">
+    <div class="nav-bar" style="padding:5px;display:flex;justify-content:space-between;align-items:center;">
+        <button class="btn-small" onclick="location.reload()">ВИХІД</button>
+        <button class="btn-small" onclick="toggleFullScreen()">🖥 ПОВНИЙ ЕКРАН</button>
+        <div id="judge-identity-display" style="font-weight:900;font-size:1.2rem;color:var(--gold);">СУДДЯ №--</div>
+        <div id="j-status" style="font-weight:900;color:var(--red);">ПАУЗА</div>
+    </div>
+    <div class="history-wrapper">
+        <div class="hist-side" id="hist-red" style="display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap;align-items:center;"></div>
+        <div class="judge-total-display"><span id="my-red-score" style="color:var(--red);">0</span><span style="opacity:.5;">:</span><span id="my-blue-score" style="color:var(--blue);">0</span></div>
+        <div class="hist-side" id="hist-blue" style="display:flex;justify-content:flex-start;gap:5px;flex-wrap:wrap;align-items:center;"></div>
+    </div>
+    <div id="judge-pad" class="judge-pad locked">
+        <div class="j-col">
+            <button class="j-btn red-box" onclick="sendP('r',1)">+1</button>
+            <button class="j-btn red-box" onclick="sendP('r',2)">+2</button>
+            <button class="j-btn red-box" onclick="sendP('r',3)">+3</button>
+        </div>
+        <div class="j-col">
+            <button class="j-btn blue-box" onclick="sendP('b',1)">+1</button>
+            <button class="j-btn blue-box" onclick="sendP('b',2)">+2</button>
+            <button class="j-btn blue-box" onclick="sendP('b',3)">+3</button>
+        </div>
+    </div>
+    <button style="height:70px;background:#222;color:white;border:1px solid #444;border-radius:15px;font-weight:bold;font-size:1.2rem;" onclick="undoP()">ВІДМІНА</button>
+</div>
+
+<div id="display-interface">
+    <div id="doctor-overlay">
+        <div class="doc-overlay-title" id="doc-overlay-title-text">DOCTOR TIME</div>
+        <div class="doc-overlay-clock" id="doc-overlay-clock-val">02:00</div>
+    </div>
+    <div class="disp-top-row">
+        <div class="disp-side-box red-box">
+            <div class="disp-name" id="disp-name-red">HONG</div>
+            <div class="disp-score" id="disp-score-red">0</div>
+            <div class="disp-penalties"><div class="disp-p-item"><div class="disp-p-lbl">Chuy</div><div class="disp-p-val" id="disp-chuy-red">0</div></div><div class="disp-p-item"><div class="disp-p-lbl">Gam Jum</div><div class="disp-p-val" id="disp-gam-red">0</div></div></div>
+        </div>
+        <div class="disp-center-box">
+            <div class="disp-round" id="disp-round-lbl">РАУНД 1</div>
+            <div class="disp-clock" id="disp-clock-val">02:00</div>
+            <button class="btn-small" onclick="toggleFullScreen()" style="margin-top:20px;opacity:.2;">🖥 FULLSCREEN</button>
+        </div>
+        <div class="disp-side-box blue-box">
+            <div class="disp-name" id="disp-name-blue">CHONG</div>
+            <div class="disp-score" id="disp-score-blue">0</div>
+            <div class="disp-penalties"><div class="disp-p-item"><div class="disp-p-lbl">Chuy</div><div class="disp-p-val" id="disp-chuy-blue">0</div></div><div class="disp-p-item"><div class="disp-p-lbl">Gam Jum</div><div class="disp-p-val" id="disp-gam-blue">0</div></div></div>
+        </div>
+    </div>
+    <div class="disp-judges-row" id="disp-judges-container">
+        <div class="disp-judge-card"><div class="disp-j-grids"><div class="disp-j-box mini-r" id="j-1-r">0</div><div class="disp-j-box mini-b" id="j-1-b">0</div></div></div>
+        <div class="disp-judge-card"><div class="disp-j-grids"><div class="disp-j-box mini-r" id="j-2-r">0</div><div class="disp-j-box mini-b" id="j-2-b">0</div></div></div>
+        <div class="disp-judge-card"><div class="disp-j-grids"><div class="disp-j-box mini-r" id="j-3-r">0</div><div class="disp-j-box mini-b" id="j-3-b">0</div></div></div>
+        <div class="disp-judge-card"><div class="disp-j-grids"><div class="disp-j-box mini-r" id="j-4-r">0</div><div class="disp-j-box mini-b" id="j-4-b">0</div></div></div>
+    </div>
+</div>
+
+<script>
+const gongSound = new Audio('https://www.soundjay.com/misc/sounds/gong-1.mp3');
+
+let peer, conn, judgeRawScores = {}, judgeHistory = {};
+let defaultMatchTime = 120, mainTime = 120, mainRunning = false, mainInt, myNum, judgeCanVote = false;
+let activeJudges = new Set();
+let penalties = { red: {gam:0, chuy:0}, blue: {gam:0, chuy:0} };
+let docs = { red: {t:120, run:false, int:null}, blue: {t:120, run:false, int:null} };
+let currentRound = 1, isBreak = false;
+let appRole = '';
+let judgeLocalHistory = {};
+let judgeUndoStack = {};
+
+for(let i = 1; i <= 4; i++) {
+    judgeRawScores[i.toString()] = {r:0, b:0};
+    judgeHistory[i.toString()] = [];
+    judgeLocalHistory[i.toString()] = { red: [], blue: [] };
+    judgeUndoStack[i.toString()] = [];
+}
+
+function showJudgeLogin(){document.getElementById('main-menu').style.display='none';document.getElementById('judge-login').style.display='block'}
+function showDisplayLogin(){document.getElementById('main-menu').style.display='none';document.getElementById('display-login').style.display='block'}
+function goBackToMenu(){if(confirm("Вийти в головне меню?")) location.reload()}
+function toggleFullScreen(){if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e=>{});else if(document.exitFullscreen) document.exitFullscreen()}
+
+function editName(side){
+    if(appRole !== 'admin') return;
+    let current = document.getElementById('name-' + side).innerText;
+    let newName = prompt("Введіть ім'я бійця:", current);
+    if(newName && newName.trim()){
+        document.getElementById('name-' + side).innerText = newName.toUpperCase();
+        syncDataToDisplays();
+    }
+}
+
+function formatTime(seconds){
+    let m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    let s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function startApp(role){
+    appRole = role;
+    document.getElementById('selection-screen').style.display = 'none';
+    if(role === 'admin'){
+        document.getElementById('admin-interface').style.display = 'grid';
+        updateList();
+        initAdmin();
+    } else if(role === 'judge'){
+        myNum = document.getElementById('input-judge-num').value;
+        if(!myNum || myNum < 1 || myNum > 4){
+            alert("Введіть номер судді (1-4)");
+            location.reload();
+            return;
+        }
+        document.getElementById('judge-interface').style.display = 'flex';
+        document.getElementById('judge-identity-display').innerText = `СУДДЯ №${myNum}`;
+        initJudge(document.getElementById('input-room').value);
+    } else if(role === 'display'){
+        document.getElementById('display-interface').style.display = 'flex';
+        initDisplayScreen(document.getElementById('display-room').value);
+    }
+}
+
+function updateList(){
+    const sidebar = document.getElementById('judges-list');
+    if(!sidebar) return;
+    sidebar.innerHTML = '<div style="font-weight:800;color:#8e8e93;font-size:.8rem;margin-bottom:5px;">СУДДІ</div>';
+    for(let i = 1; i <= 4; i++){
+        let jNum = i.toString();
+        let isConnected = activeJudges.has(jNum);
+        let card = document.createElement('div');
+        card.className = `judge-card-admin ${isConnected ? 'connected' : ''}`;
+        card.innerHTML = `<div class="judge-card-title">Суддя №${jNum}<div class="judge-status-dot"></div></div><div class="judge-card-scores"><div class="mini-square mini-r">${judgeRawScores[jNum]?.r || 0}</div><div class="mini-square mini-b">${judgeRawScores[jNum]?.b || 0}</div></div>`;
+        sidebar.appendChild(card);
+    }
+}
+
+function getPenaltyPoints(side){
+    return penalties[side].gam + Math.floor(penalties[side].chuy / 3);
+}
+
+function getFinalScores(){
+    let redVotes = 0;
+    let blueVotes = 0;
+
+    activeJudges.forEach(j => {
+        let r = judgeRawScores[j]?.r || 0;
+        let b = judgeRawScores[j]?.b || 0;
+        if(r > b) redVotes++;
+        else if(b > r) blueVotes++;
+    });
+
+    if(judgeRawScores['HEAD']){
+        let r = judgeRawScores['HEAD'].r || 0;
+        let b = judgeRawScores['HEAD'].b || 0;
+        if(r > b) redVotes++;
+        else if(b > r) blueVotes++;
+    }
+
+    return {
+        red: Math.max(0, redVotes - getPenaltyPoints('red')),
+        blue: Math.max(0, blueVotes - getPenaltyPoints('blue'))
+    };
+}
+
+function calc(){
+    let finalScores = getFinalScores();
+    document.getElementById('score-red').innerText = finalScores.red;
+    document.getElementById('score-blue').innerText = finalScores.blue;
+    syncDataToDisplays();
+}
+
+function headChange(side, val){
+    if(!judgeRawScores['HEAD']) judgeRawScores['HEAD'] = {r:0, b:0};
+    if(side === 'r') judgeRawScores['HEAD'].r = Math.max(0, judgeRawScores['HEAD'].r + val);
+    if(side === 'b') judgeRawScores['HEAD'].b = Math.max(0, judgeRawScores['HEAD'].b + val);
+    calc();
+}
+
+function chngP(fighter, type, val){
+    penalties[fighter][type] = Math.max(0, penalties[fighter][type] + val);
+    document.getElementById(`${type}-${fighter}`).innerText = penalties[fighter][type];
+
+    calc();
+
+    if(type === 'gam' && val > 0 && penalties[fighter].gam >= 3){
+        if(mainRunning) toggleMainTimer();
+        let winner = fighter === 'red'
+            ? document.getElementById('name-blue').innerText
+            : document.getElementById('name-red').innerText;
+        alert(`ДИСКВАЛІФІКАЦІЯ! Переможець: ${winner}`);
+    }
+}
+
+function initAdmin(){
+    peer = new Peer(Math.floor(1000 + Math.random() * 9000).toString());
+    peer.on('open', id => { document.getElementById('room-id').innerText = "ID: " + id; });
+    peer.on('connection', c => {
+        c.on('data', data => {
+            if(data.type === 'hello'){
+                if(data.num !== 'DISPLAY'){
+                    let numStr = data.num.toString();
+                    activeJudges.add(numStr);
+                    if(!judgeRawScores[numStr]) judgeRawScores[numStr] = {r:0, b:0};
+                    if(!judgeHistory[numStr]) judgeHistory[numStr] = [];
+                }
+                updateList();
+                c.send({type:'state', running: mainRunning && !isBreak});
+                syncDataToDisplays();
+            }
+            if(data.type === 'point' && mainRunning && !isBreak){
+                let numStr = data.num.toString();
+                judgeRawScores[numStr].r += data.r;
+                judgeRawScores[numStr].b += data.b;
+                judgeHistory[numStr].push({r:data.r, b:data.b});
+                calc();
+                updateList();
+            }
+            if(data.type === 'undo'){
+                let numStr = data.num.toString();
+                let last = judgeHistory[numStr]?.pop();
+                if(last){
+                    judgeRawScores[numStr].r -= last.r;
+                    judgeRawScores[numStr].b -= last.b;
+                }
+                calc();
+                updateList();
+            }
+        });
+    });
+}
+
+function initJudge(rid){
+    peer = new Peer();
+    peer.on('open', () => {
+        conn = peer.connect(rid);
+        conn.on('open', () => { conn.send({type:'hello', num:myNum}); });
+        conn.on('data', data => {
+            if(data.type === 'state') updateJudgeLock(data.running);
+            if(data.type === 'reset_scores'){
+                judgeLocalHistory[myNum] = { red: [], blue: [] };
+                judgeUndoStack[myNum] = [];
+                document.getElementById('my-red-score').innerText = "0";
+                document.getElementById('my-blue-score').innerText = "0";
+                renderJudgeHistory();
+            }
+        });
+    });
+}
+
+function initDisplayScreen(rid){
+    peer = new Peer();
+    peer.on('open', () => {
+        conn = peer.connect(rid);
+        conn.on('open', () => { conn.send({type:'hello', num:'DISPLAY'}); });
+        conn.on('data', data => { if(data.type === 'full_state') updateDisplayUI(data.payload); });
+    });
+}
+
+function updateJudgeLock(running){
+    judgeCanVote = running;
+    const pad = document.getElementById('judge-pad');
+    const statusText = document.getElementById('j-status');
+    if(running){
+        pad.classList.remove('locked');
+        statusText.innerText = "ГОТОВИЙ";
+        statusText.style.color = "var(--green)";
+    } else {
+        pad.classList.add('locked');
+        statusText.innerText = "ПАУЗА";
+        statusText.style.color = "var(--red)";
+    }
+}
+
+function renderJudgeHistory(){
+    const histRed = document.getElementById('hist-red');
+    const histBlue = document.getElementById('hist-blue');
+    if(!histRed || !histBlue) return;
+    histRed.innerHTML = '';
+    histBlue.innerHTML = '';
+    let redArr = judgeLocalHistory[myNum]?.red || [];
+    let blueArr = judgeLocalHistory[myNum]?.blue || [];
+    redArr.forEach(val => {
+        let tag = document.createElement('div');
+        tag.className = 'tag';
+        tag.innerText = `+${val}`;
+        tag.style.background = 'var(--red)';
+        histRed.appendChild(tag);
+    });
+    blueArr.forEach(val => {
+        let tag = document.createElement('div');
+        tag.className = 'tag';
+        tag.innerText = `+${val}`;
+        tag.style.background = 'var(--blue)';
+        histBlue.appendChild(tag);
+    });
+}
+
+function sendP(side, pts){
+    if(!judgeCanVote || !conn) return;
+    let rPts = side === 'r' ? pts : 0;
+    let bPts = side === 'b' ? pts : 0;
+    let redScoreEl = document.getElementById('my-red-score');
+    let blueScoreEl = document.getElementById('my-blue-score');
+    redScoreEl.innerText = parseInt(redScoreEl.innerText) + rPts;
+    blueScoreEl.innerText = parseInt(blueScoreEl.innerText) + bPts;
+    if(!judgeLocalHistory[myNum]) judgeLocalHistory[myNum] = { red: [], blue: [] };
+    if(!judgeUndoStack[myNum]) judgeUndoStack[myNum] = [];
+    if(side === 'r') judgeLocalHistory[myNum].red.push(pts);
+    else judgeLocalHistory[myNum].blue.push(pts);
+    judgeUndoStack[myNum].push({side, pts});
+    renderJudgeHistory();
+    conn.send({type:'point', num:myNum, r:rPts, b:bPts});
+}
+
+function undoP(){
+    if(!conn || !judgeUndoStack[myNum]?.length) return;
+    let last = judgeUndoStack[myNum].pop();
+    let redScoreEl = document.getElementById('my-red-score');
+    let blueScoreEl = document.getElementById('my-blue-score');
+    if(last.side === 'r'){
+        judgeLocalHistory[myNum].red.pop();
+        redScoreEl.innerText = Math.max(0, parseInt(redScoreEl.innerText) - last.pts);
+    } else {
+        judgeLocalHistory[myNum].blue.pop();
+        blueScoreEl.innerText = Math.max(0, parseInt(blueScoreEl.innerText) - last.pts);
+    }
+    renderJudgeHistory();
+    conn.send({type:'undo', num:myNum});
+}
+
+function syncDataToDisplays(){
+    if(appRole !== 'admin' || !peer?.connections) return;
+    let finalScores = getFinalScores();
+    const statePayload = {
+        nameRed: document.getElementById('name-red').innerText,
+        nameBlue: document.getElementById('name-blue').innerText,
+        scoreRed: finalScores.red,
+        scoreBlue: finalScores.blue,
+        roundLabel: document.getElementById('round-label').innerText,
+        timeStr: formatTime(mainTime),
+        isRunning: mainRunning,
+        penalties: penalties,
+        scores: judgeRawScores,
+        docs: {
+            red: { run: docs.red.run, tStr: formatTime(docs.red.t) },
+            blue: { run: docs.blue.run, tStr: formatTime(docs.blue.t) }
+        }
+    };
+    Object.values(peer.connections).forEach(cc => {
+        cc.forEach(c => { c.send({ type:'full_state', payload: statePayload }); });
+    });
+}
+
+function updateDisplayUI(data){
+    document.getElementById('disp-name-red').innerText = data.nameRed;
+    document.getElementById('disp-name-blue').innerText = data.nameBlue;
+    document.getElementById('disp-score-red').innerText = data.scoreRed;
+    document.getElementById('disp-score-blue').innerText = data.scoreBlue;
+    document.getElementById('disp-round-lbl').innerText = data.roundLabel;
+    document.getElementById('disp-clock-val').innerText = data.timeStr;
+    document.getElementById('disp-chuy-red').innerText = data.penalties.red.chuy;
+    document.getElementById('disp-gam-red').innerText = data.penalties.red.gam;
+    document.getElementById('disp-chuy-blue').innerText = data.penalties.blue.chuy;
+    document.getElementById('disp-gam-blue').innerText = data.penalties.blue.gam;
+
+    const overlay = document.getElementById('doctor-overlay');
+    const overlayTitle = document.getElementById('doc-overlay-title-text');
+    const overlayClock = document.getElementById('doc-overlay-clock-val');
+    if(data.docs.red.run){
+        overlay.style.display = 'flex';
+        overlay.style.background = 'rgba(128,0,0,.95)';
+        overlayTitle.innerText = `DOCTOR TIME - ${data.nameRed}`;
+        overlayClock.innerText = data.docs.red.tStr;
+    } else if(data.docs.blue.run){
+        overlay.style.display = 'flex';
+        overlay.style.background = 'rgba(0,0,68,.95)';
+        overlayTitle.innerText = `DOCTOR TIME - ${data.nameBlue}`;
+        overlayClock.innerText = data.docs.blue.tStr;
+    } else {
+        overlay.style.display = 'none';
+    }
+
+    for(let i = 1; i <= 4; i++){
+        let js = data.scores[i.toString()] || {r:0, b:0};
+        document.getElementById(`j-${i}-r`).innerText = js.r;
+        document.getElementById(`j-${i}-b`).innerText = js.b;
+    }
+}
+
+function toggleMainTimer(){
+    if(appRole !== 'admin') return;
+    if(mainRunning){
+        clearInterval(mainInt);
+        mainRunning = false;
+        document.getElementById('timer-status').innerText = "ПАУЗА";
+        document.getElementById('timer-btn').style.background = "var(--red)";
+    } else {
+        if(mainTime === defaultMatchTime && !isBreak) gongSound.play().catch(e => {});
+        if(docs.red.run) toggleDoc('red');
+        if(docs.blue.run) toggleDoc('blue');
+        mainRunning = true;
+        document.getElementById('timer-status').innerText = "БІЙ ІДЕ";
+        document.getElementById('timer-btn').style.background = "var(--green)";
+        mainInt = setInterval(() => {
+            if(mainTime > 0){
+                mainTime--;
+                document.getElementById('main-clock').innerText = formatTime(mainTime);
+                syncDataToDisplays();
+            } else {
+                clearInterval(mainInt);
+                mainRunning = false;
+                gongSound.play().catch(e => {});
+                if(!isBreak && currentRound < 3){
+                    isBreak = true;
+                    mainTime = 60;
+                    document.getElementById('round-label').innerText = "ПЕРЕРВА";
+                    document.getElementById('timer-status').innerText = "ПЕРЕРВА";
+                    document.getElementById('timer-btn').style.background = "purple";
+                } else if(isBreak){
+                    isBreak = false;
+                    currentRound++;
+                    mainTime = defaultMatchTime;
+                    document.getElementById('round-label').innerText = `РАУНД ${currentRound}`;
+                    document.getElementById('timer-status').innerText = "ТАП ДЛЯ СТАРТУ";
+                    document.getElementById('timer-btn').style.background = "var(--red)";
+                } else {
+                    document.getElementById('timer-status').innerText = "БІЙ ЗАВЕРШЕНО";
+                    document.getElementById('timer-btn').style.background = "#333";
+                }
+                syncDataToDisplays();
+            }
+        }, 1000);
+    }
+
+    syncDataToDisplays();
+    Object.values(peer?.connections || {}).forEach(cc => {
+        cc.forEach(c => c.send({type:'state', running: mainRunning && !isBreak}));
+    });
+}
+
+function changeMainTime(delta, event){
+    if(event) event.stopPropagation();
+    if(appRole !== 'admin') return;
+    mainTime = Math.max(0, mainTime + delta);
+    document.getElementById('main-clock').innerText = formatTime(mainTime);
+    syncDataToDisplays();
+}
+
+function toggleDoc(side){
+    if(appRole !== 'admin') return;
+    let d = docs[side];
+    if(d.run){
+        clearInterval(d.int);
+        d.run = false;
+        document.getElementById(`card-doc-${side}`).classList.remove('active');
+    } else {
+        if(mainRunning) toggleMainTimer();
+        let other = side === 'red' ? 'blue' : 'red';
+        if(docs[other].run) toggleDoc(other);
+        d.run = true;
+        document.getElementById(`card-doc-${side}`).classList.add('active');
+        d.int = setInterval(() => {
+            if(d.t > 0){
+                d.t--;
+                document.getElementById(`val-doc-${side}`).innerText = formatTime(d.t);
+                syncDataToDisplays();
+            } else {
+                clearInterval(d.int);
+                d.run = false;
+                document.getElementById(`card-doc-${side}`).classList.remove('active');
+                gongSound.play().catch(e => {});
+                syncDataToDisplays();
+            }
+        }, 1000);
+    }
+    syncDataToDisplays();
+}
+
+function setMatchTime(){
+    if(appRole !== 'admin') return;
+    let t = prompt("Час раунду (секунди):", defaultMatchTime);
+    if(t && !isNaN(t)){
+        defaultMatchTime = parseInt(t);
+        mainTime = defaultMatchTime;
+        document.getElementById('main-clock').innerText = formatTime(mainTime);
+        syncDataToDisplays();
+    }
+}
+
+function resetMatch(){
+    if(appRole !== 'admin') return;
+    if(!confirm("Скинути всі результати?")) return;
+
+    clearInterval(mainInt);
+    clearInterval(docs.red.int);
+    clearInterval(docs.blue.int);
+
+    mainRunning = false;
+    mainTime = defaultMatchTime;
+    currentRound = 1;
+    isBreak = false;
+    penalties = { red: {gam:0, chuy:0}, blue: {gam:0, chuy:0} };
+    docs = { red: {t:120, run:false, int:null}, blue: {t:120, run:false, int:null} };
+
+    for(let i = 1; i <= 4; i++){
+        judgeRawScores[i.toString()] = {r:0, b:0};
+        judgeHistory[i.toString()] = [];
+        judgeLocalHistory[i.toString()] = { red: [], blue: [] };
+        judgeUndoStack[i.toString()] = [];
+    }
+
+    if(judgeRawScores['HEAD']) judgeRawScores['HEAD'] = {r:0, b:0};
+
+    document.getElementById('main-clock').innerText = formatTime(mainTime);
+    document.getElementById('round-label').innerText = "РАУНД 1";
+    document.getElementById('timer-status').innerText = "TAP TO START";
+    document.getElementById('timer-btn').style.background = "var(--red)";
+    document.getElementById('gam-red').innerText = "0";
+    document.getElementById('chuy-red').innerText = "0";
+    document.getElementById('gam-blue').innerText = "0";
+    document.getElementById('chuy-blue').innerText = "0";
+    document.getElementById('val-doc-red').innerText = "02:00";
+    document.getElementById('val-doc-blue').innerText = "02:00";
+    document.getElementById('card-doc-red').classList.remove('active');
+    document.getElementById('card-doc-blue').classList.remove('active');
+
+    if(peer?.connections){
+        Object.values(peer.connections).forEach(cc => {
+            cc.forEach(c => {
+                c.send({ type:'reset_scores' });
+                c.send({ type:'state', running:false });
+            });
+        });
+    }
+
+    calc();
+    updateList();
+    syncDataToDisplays();
+}
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
+</script>
+</body>
+</html>
