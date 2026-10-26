@@ -5,12 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>JUDICIAL ELITE SPARRING</title>
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0e14">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="JE Sparring">
-<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{--bg:#0a0e14;--panel:#161b22;--red:#ff3b30;--blue:#007aff;--green:#34c759;--text:#fff;--gold:#ffcc00}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif;overflow:hidden;touch-action:manipulation}
@@ -61,11 +55,92 @@ input{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid
 #doctor-overlay{position:absolute;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;animation:fadeIn .3s ease;background:rgba(0,0,0,.95)}
 .doc-overlay-title{font-size:4rem;font-weight:900;text-transform:uppercase;letter-spacing:4px;margin-bottom:20px}.doc-overlay-clock{font-size:18rem;font-weight:900;font-family:monospace;line-height:.8}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ===== ІНСТРУКЦІЯ (тільки на екрані входу) ===== */
+#help-btn{
+    position:fixed;top:15px;right:15px;z-index:1200;
+    width:42px;height:42px;border-radius:50%;
+    background:var(--blue);color:#fff;border:none;
+    font-size:1.4rem;font-weight:900;cursor:pointer;
+    box-shadow:0 4px 12px rgba(0,122,255,.4);
+    display:none;
+}
+#help-btn.visible{display:block}
+#help-modal{
+    position:fixed;inset:0;z-index:1300;
+    background:rgba(0,0,0,.85);
+    display:none;align-items:center;justify-content:center;
+    padding:20px;box-sizing:border-box;
+    animation:fadeIn .25s ease;
+}
+#help-modal.open{display:flex}
+.help-card{
+    background:var(--panel);border:1px solid #30363d;
+    border-radius:20px;padding:30px;
+    width:640px;max-width:100%;max-height:90vh;
+    overflow-y:auto;text-align:left;
+}
+.help-card h2{margin:0 0 20px;text-align:center;color:var(--gold)}
+.help-card h3{color:var(--blue);margin:18px 0 6px;font-size:1rem;text-transform:uppercase}
+.help-card p,.help-card li{font-size:.95rem;line-height:1.5;color:#ccc}
+.help-card ul{margin:6px 0;padding-left:20px}
+.help-card code{background:#0d1117;padding:2px 6px;border-radius:4px;color:var(--green)}
+
+/* Стрілка "Назад" на екрані трансляції */
+.disp-back-btn{
+    position:absolute;top:15px;left:15px;z-index:50;
+    background:rgba(255,255,255,.1);color:#fff;
+    border:1px solid rgba(255,255,255,.25);
+    padding:8px 14px;border-radius:10px;
+    font-weight:bold;font-size:1rem;cursor:pointer;
+    opacity:.5;transition:opacity .2s;
+}
+.disp-back-btn:hover{opacity:1}
 </style>
 </head>
 <body>
 
 <div class="author-credit">Created by Kira Sytnyk</div>
+
+<!-- Кнопка інструкції (тільки на екрані входу) -->
+<button id="help-btn" onclick="openHelp()" title="Інструкція">?</button>
+
+<!-- Модальне вікно інструкції -->
+<div id="help-modal">
+    <div class="help-card">
+        <h2>ІНСТРУКЦІЯ КОРИСТУВАЧА</h2>
+        <div class="help-content">
+            <h3>1. Головний суддя</h3>
+            <p>Натисніть <b>«ГОЛОВНИЙ СУДДЯ»</b>. Ви отримаєте ID кімнати (наприклад <code>ID: 1234</code>) — передайте його суддям та екрану трансляції.</p>
+            <ul>
+                <li>Клік на ім'я бійця — редагування імені.</li>
+                <li><b>+ / −</b> біля рахунку — бали головного судді.</li>
+                <li><b>GAM JUM</b> — попередження (3 = дискваліфікація).</li>
+                <li><b>JU UI</b> — зауваження (3 = 1 бал штрафу).</li>
+                <li><b>DOCTOR TIME</b> — пауза для лікаря (2 хв).</li>
+                <li>Клік на таймер — старт/пауза раунду.</li>
+                <li><b>+10 / −10 сек.</b> — коригування часу.</li>
+                <li><b>TIME</b> — змінити тривалість раунду.</li>
+                <li><b>СКИДАННЯ</b> — обнулити матч.</li>
+            </ul>
+
+            <h3>2. Суддя</h3>
+            <p>Натисніть <b>«УВІЙТИ ЯК СУДДЯ»</b>, введіть ID кімнати та свій номер (1–4).</p>
+            <ul>
+                <li>Кнопки <b>+1 / +2 / +3</b> — бали відповідному бійцю.</li>
+                <li><b>ВІДМІНА</b> — скасувати останній бал.</li>
+                <li>Голосування доступне лише коли таймер іде (стан «ГОТОВИЙ»).</li>
+            </ul>
+
+            <h3>3. Екран трансляції</h3>
+            <p>Натисніть <b>«ЕКРАН ТРАНСЛЯЦІЇ»</b>, введіть ID кімнати. Табло показує рахунок, час, пенальті та бали кожного судді. Кнопка <b>← Назад</b> — повернення до меню.</p>
+
+            <h3>Підрахунок</h3>
+            <p>Переможець раунду визначається більшістю голосів суддів (включно з головним). Пенальті віднімаються від голосів.</p>
+        </div>
+        <button class="btn-main btn-head" onclick="closeHelp()" style="margin-top:20px">ЗРОЗУМІЛО</button>
+    </div>
+</div>
 
 <div id="selection-screen">
     <div class="menu-card" id="main-menu">
@@ -205,6 +280,8 @@ input{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid
 </div>
 
 <div id="display-interface">
+    <!-- Стрілка "Назад" на екрані трансляції -->
+    <button class="disp-back-btn" onclick="goBackToMenu()">← Назад</button>
     <div id="doctor-overlay">
         <div class="doc-overlay-title" id="doc-overlay-title-text">DOCTOR TIME</div>
         <div class="doc-overlay-clock" id="doc-overlay-clock-val">02:00</div>
@@ -254,6 +331,31 @@ for(let i = 1; i <= 4; i++) {
     judgeUndoStack[i.toString()] = [];
 }
 
+/* ===== ІНСТРУКЦІЯ (тільки на екрані входу) ===== */
+function openHelp(){
+    document.getElementById('help-modal').classList.add('open');
+}
+function closeHelp(){
+    document.getElementById('help-modal').classList.remove('open');
+    localStorage.setItem('helpSeen','1');
+}
+function showHelpBtn(show){
+    const btn = document.getElementById('help-btn');
+    if(btn) btn.classList.toggle('visible', !!show);
+}
+window.addEventListener('load', () => {
+    showHelpBtn(true);
+    if(!localStorage.getItem('helpSeen')) openHelp();
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const hm = document.getElementById('help-modal');
+    if(hm){
+        hm.addEventListener('click', e => {
+            if(e.target.id === 'help-modal') closeHelp();
+        });
+    }
+});
+
 function showJudgeLogin(){document.getElementById('main-menu').style.display='none';document.getElementById('judge-login').style.display='block'}
 function showDisplayLogin(){document.getElementById('main-menu').style.display='none';document.getElementById('display-login').style.display='block'}
 function goBackToMenu(){if(confirm("Вийти в головне меню?")) location.reload()}
@@ -277,6 +379,7 @@ function formatTime(seconds){
 
 function startApp(role){
     appRole = role;
+    showHelpBtn(false); // ховаємо кнопку "?" після входу
     document.getElementById('selection-screen').style.display = 'none';
     if(role === 'admin'){
         document.getElementById('admin-interface').style.display = 'grid';
@@ -715,15 +818,6 @@ function resetMatch(){
     updateList();
     syncDataToDisplays();
 }
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('SW registered:', reg.scope))
-        .catch(err => console.log('SW error:', err));
-    });
-  }
 </script>
 </body>
 </html>
