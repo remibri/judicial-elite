@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>JUDICIAL ELITE SPARRING</title>
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <style>
@@ -96,6 +96,72 @@ input{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid
     opacity:.5;transition:opacity .2s;
 }
 .disp-back-btn:hover{opacity:1}
+
+/* ===== АДАПТАЦІЯ ПІД РІЗНІ ЕКРАНИ ===== */
+.disp-name   { font-size: clamp(1.1rem, 3.5vmin, 3.5rem); }
+.disp-score  { font-size: clamp(3rem, 15vmin, 16rem); }
+.disp-clock  { font-size: clamp(2rem, 9vmin, 8.5rem); }
+.disp-round  { font-size: clamp(1rem, 3vmin, 2.8rem); }
+.disp-p-val  { font-size: clamp(1rem, 2.5vmin, 2rem); }
+.disp-p-lbl  { font-size: clamp(.6rem, 1.2vmin, .9rem); }
+.disp-j-box  { font-size: clamp(.9rem, 2.5vmin, 2.2rem); height: clamp(30px, 8vmin, 60px); }
+.doc-overlay-title { font-size: clamp(1.5rem, 5vmin, 4rem); }
+.doc-overlay-clock { font-size: clamp(4rem, 20vmin, 18rem); }
+
+@supports (height: 100dvh) {
+    .admin-screen, #judge-interface, #display-interface { height: 100dvh; }
+}
+
+@media (max-width: 700px) and (orientation: portrait) {
+    #display-interface {
+        height: 100vh; height: 100dvh;
+        overflow-y: auto;
+        padding: 8px;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+    .disp-top-row {
+        grid-template-columns: 1fr;
+        height: auto;
+        gap: 8px;
+    }
+    .disp-center-box { order: -1; padding: 10px; }
+    .disp-side-box   { flex-direction: row; justify-content: space-between; padding: 10px 14px; }
+    .disp-penalties  { flex-direction: column; width: auto; padding: 6px 10px; gap: 4px; }
+    .disp-judges-row {
+        grid-template-columns: repeat(2, 1fr);
+        height: auto;
+        min-height: 60px;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .disp-back-btn { top: 8px; left: 8px; font-size: .75rem; padding: 5px 9px; opacity: .4; }
+
+    .score-big        { font-size: clamp(3rem, 15vmin, 6rem); }
+    .timer-time       { font-size: clamp(1.8rem, 8vmin, 3rem); }
+    .name             { font-size: clamp(1.1rem, 4vmin, 2rem); }
+    .j-btn            { font-size: clamp(1.5rem, 8vmin, 3rem); }
+    .judge-total-display { font-size: 1.4rem; padding: 0 8px; }
+}
+
+@media (max-width: 400px) {
+    .p-btn   { width: 28px; height: 28px; font-size: .9rem; }
+    .p-val   { font-size: 1.3rem; min-width: 22px; }
+    .p-header{ font-size: .6rem; }
+    .btn-small { padding: 5px 8px; font-size: .7rem; }
+    .h-btn   { width: 32px; height: 32px; font-size: 1.2rem; }
+    .tag     { font-size: 1rem; padding: 5px 8px; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .disp-score { font-size: clamp(3rem, 20vmin, 8rem); }
+    .disp-clock { font-size: clamp(2rem, 12vmin, 5rem); }
+    .disp-name  { font-size: clamp(1rem, 4vmin, 2rem); }
+    .disp-p-val { font-size: clamp(.9rem, 2.5vmin, 1.4rem); }
+    .disp-judges-row { height: auto; min-height: 44px; }
+    .disp-j-box { height: 32px; }
+    .disp-back-btn { font-size: .7rem; padding: 3px 8px; opacity: .3; }
+}
 </style>
 </head>
 <body>
@@ -379,7 +445,7 @@ function formatTime(seconds){
 
 function startApp(role){
     appRole = role;
-    showHelpBtn(false); // ховаємо кнопку "?" після входу
+    showHelpBtn(false);
     document.getElementById('selection-screen').style.display = 'none';
     if(role === 'admin'){
         document.getElementById('admin-interface').style.display = 'grid';
